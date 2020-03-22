@@ -1029,6 +1029,7 @@ name = "libp2p-example"
 version = "0.1.0"
 dependencies = [
  "async-std",
+ "bs58",
  "env_logger",
  "futures 0.3.4",
  "libp2p",

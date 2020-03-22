@@ -20,6 +20,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Create a random key for ourselves.
     let local_key = identity::Keypair::generate_ed25519();
     let local_peer_id = PeerId::from(local_key.public());
+    println!("PeerId {:?}", &local_peer_id);
 
     // Set up a an encrypted DNS-enabled TCP Transport over the Mplex protocol.
     let transport = build_development_transport(local_key)?;
@@ -37,6 +38,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             if let MdnsEvent::Discovered(list) = event {
                 for (peer_id, multiaddr) in list {
                     self.kademlia.add_address(&peer_id, multiaddr);
+                    // eprintln!("NetworkBehaviourEventProcess peer_id: {:?}", &peer_id);
                 }
             }
         }
@@ -81,14 +83,17 @@ fn main() -> Result<(), Box<dyn Error>> {
         let behaviour = MyBehaviour { kademlia, mdns };
         Swarm::new(transport, behaviour, local_peer_id)
     };
-    
+        
     // Reach out to another node if specified
-    if let Some(to_dial) = std::env::args().nth(1) {
-        let addr: Multiaddr = to_dial.parse()?;
-        Swarm::dial_addr(&mut swarm, addr)?;
-        println!("Dialed {:?}", to_dial)
+    let args: Vec<_> = std::env::args().collect();
+    if args.len() > 1 {
+        let addr: Multiaddr = args[1].parse()?;
+        let bytes = bs58::decode(&args[2]).into_vec().unwrap();
+        let peer_id = PeerId::from_bytes(bytes).unwrap();
+        println!("addr {:?} peer_id {:?}", addr, &peer_id);
+        swarm.kademlia.add_address(&peer_id, addr);
     }
-
+    
     // Read full lines from stdin
     let mut stdin = io::BufReader::new(io::stdin()).lines();
 
@@ -112,7 +117,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 Poll::Pending => {
                     if !listening {
                         if let Some(a) = Swarm::listeners(&swarm).next() {
-                            println!("Listening on {:?}", a);
+                            println!("Listening on {:?}", a);                            
                             listening = true;
                         }
                     }
