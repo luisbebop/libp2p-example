@@ -1,0 +1,13 @@
+[package]
+name = "libp2p-example"
+version = "0.1.0"
+authors = ["luisbebop <luisbebop@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+libp2p = "0.16.2"
+futures = "0.3.4"
+async-std = "1.5.0"
+env_logger = "0.7.1"
